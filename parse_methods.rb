@@ -5,6 +5,7 @@ module Parser
 		else
 			STDOUT.puts "All is correct, code is #{response.code}\n".colorize(:green)
 			STDOUT.puts "#{response.body}".colorize(:blue)
+      #
 		end
 	end
 	def switch_for_first_param
