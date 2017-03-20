@@ -9,16 +9,17 @@ class Parser
   end
   def post_query
     uri = URI.parse(options[:url])
-    response = Net::HTTP.post_form(uri, @options[:data])
+    @response = Net::HTTP.post_form(uri, @options[:data])
     http = Net::HTTP.new(uri.host, uri.port)
     request = Net::HTTP::Post.new(uri.request_uri)
     request.set_form_data(@options[:data])
-    response = http.request(request)
+    @response = http.request(request)
   end
   def post_data_to_site(parser)
     parser.on("-d=data", "--data=data", "Settings the url for parsing") do |data|
     data = parse_data(data)
     make_hash_from_data(data)
+    post_query
     end
   end
   def parse_page(parser)
@@ -37,7 +38,7 @@ class Parser
     end
   end
   def help(parser)
-    parser.banner = "Usage: my_curl.rb [options] -u [url]"
+    parser.banner = "Usage: ruby my_curl.rb -u [url] [options]"
     parser.on("-h", "--help", "Shows this help message") do ||
       puts parser
     end
