@@ -4,30 +4,63 @@ class Parser
   def initialize(opts = {})
     @options = opts
   end
-  class << self
-    def parse(response)
-      if !(@response.code =~ /2[0-9][0-9]/)
-        STDOUT.puts "Error!, code of error is: #{@response.code}\n".color(:red)
-      else
-        STDOUT.puts "All is correct, code is #{@response.code}\n".colorize(:green)
-        STDOUT.puts "#{@response.body}".colorize(:blue)
-      end
+  def post_query
+    uri = URI.parse(options[:url])
+    response = Net::HTTP.post_form(uri, @options[:data])
+    http = Net::HTTP.new(uri.host, uri.port)
+    request = Net::HTTP::Post.new(uri.request_uri)
+    request.set_form_data(@options[:data])
+
+    response = http.request(request)
+  end
+  def make_hash_from_data(data)
+    data.each_index do |index|
+      @options[:data][data[index]] = data[index +1 ] if index.even?
     end
-    def treatment(options)
-      @options = {}
-      OptionParser.new do |parser|
-        parser.banner = "Usage: my_curl.rb [options]"
-        parser.on("-h", "--help", "Shows this help message") do ||
-          puts parser
-        end
-        parser.on("-u=url", "--url=url", "Settings the url for parsing") do |url|
-          @options[:url] = url
-        end
-      end.parse!
+  end
+  def parse_data(data)
+    data = data.split(/([?]|[=])/)
+    data = data.select {|element| (element != '&' && element != '?' && element != '=')}
+    return data
+  end
+  def post_data_to_site(parser)
+    parser.on("-d=data", "--data=data", "Settings the url for parsing") do |data|
+    data = parse_data(data)
+    make_hash_from_data(data)
     end
-    def init_request
-      uri = URI.parse("#{@options[:url]}")
-      @response = Net::HTTP.get_response(uri)
+  end
+  def parse_page(parser)
+    parser.on("-u", "--url=url", "Settings the url for parsing") do |url|
+      @options[:url] = url
+      init_request
+      parse
     end
+  end
+  def parse
+    if !(@response.code =~ /2[0-9][0-9]/)
+      STDOUT.puts "Error!, code of error is: #{@response.code}\n".colorize(:red)
+    else
+      STDOUT.puts "All is correct, code is #{@response.code}\n".colorize(:green)
+      STDOUT.puts "#{@response.body}".colorize(:blue)
+    end
+  end
+  def help(parser)
+    parser.banner = "Usage: my_curl.rb [options] -u [url]"
+    parser.on("-h", "--help", "Shows this help message") do ||
+      puts parser
+    end
+  end
+  def treatment
+    @options = {}
+    @options[:data] = {}
+    OptionParser.new do |parser|
+      help(parser)
+      parse_page(parser)
+      post_data_to_site(parser)
+    end.parse!
+  end
+  def init_request
+    uri = URI.parse("#{@options[:url]}")
+    @response = Net::HTTP.get_response(uri)
   end
 end
