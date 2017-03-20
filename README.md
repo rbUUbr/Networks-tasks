@@ -31,3 +31,8 @@ More information
 
 * Ruby version: 2.4.0
 * Author: Tatchihin Kirill (rbUUbr)
+* Used libraries and modules
+  > net/http  
+  > colorize  
+  > optparse  
+  > uri  
