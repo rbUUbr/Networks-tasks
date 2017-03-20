@@ -1,5 +1,8 @@
 require 'optparse'
+#autoload :HelperMethods, "helper_methods"
+load "./parse_methods.rb"
 class Parser
+  include ParseMethods
   attr_accessor :response, :options
   def initialize(opts = {})
     @options = opts
@@ -10,18 +13,7 @@ class Parser
     http = Net::HTTP.new(uri.host, uri.port)
     request = Net::HTTP::Post.new(uri.request_uri)
     request.set_form_data(@options[:data])
-
     response = http.request(request)
-  end
-  def make_hash_from_data(data)
-    data.each_index do |index|
-      @options[:data][data[index]] = data[index +1 ] if index.even?
-    end
-  end
-  def parse_data(data)
-    data = data.split(/([?]|[=])/)
-    data = data.select {|element| (element != '&' && element != '?' && element != '=')}
-    return data
   end
   def post_data_to_site(parser)
     parser.on("-d=data", "--data=data", "Settings the url for parsing") do |data|
